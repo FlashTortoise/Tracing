@@ -24,8 +24,11 @@ class Routing(t.Task):
     def __init__(self):
         super(Routing, self).__init__()
 
-        self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise/1_0511_add_32.xml')
+        self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise/new_add.xml')
 #	     self.recorder = recording.RecordingTask()
+	self.results = []
+	self.count_curve = 0
+	self.average_length = 20
 		
     def step(self):
         img = eye.see()
@@ -33,38 +36,65 @@ class Routing(t.Task):
         image_array = Img_reshape(img_convert)
         ret, resp = self.model.predict(image_array)
         prediction = resp.argmax(-1)
+	prediction = prediction[0]
         l, r = Direction_define(prediction)
-        t.peripheral.wheels.set_lr(l, r)
-#	    self.recorder.step()
-	print prediction[0]	
+        t.peripheral.wheels.set_lr(l,r)
+	self.results, self.count_curve = Task_alter(prediction,self.results,self.count_curve,self.average_length)
+#       self.recorder.step()
+	#print prediction	
 
-        
+def Task_alter(prediction,results,count_curve,average_length):
+	results_length = len(results)
+	
+	if results_length < average_length:
+		results.append(prediction)
+	else:
+		results = Left_shift(prediction,results)
+		results, count_curve = Judge_average(results,count_curve)
+		
+	return results, count_curve
+
+def Left_shift(prediction,results):
+	results.pop(0)
+	results.append(prediction)
+	return results
+
+def Judge_average(results,count_curve):
+	results_average = sum(results)/len(results)
+	if results_average > 3.8 or results_average < 0.2:
+		count_curve += 1
+		results = []
+		print count_curve
+		return results, count_curve
+	else:
+		return results, count_curve
+
+    
 
 
 def Converting(pic):
-    
-    pic = cv2.cvtColor(pic, cv2.COLOR_BGR2HSV)
+    pic = pic[240:480, 80:560]
     pic = Resize_img(pic, ratio=0.5)
+    pic = cv2.cvtColor(pic, cv2.COLOR_BGR2HSV)
 	
-    v = pic[:,:,2]
-    dx, dy = np.gradient(v)
-    g = (dx**2 + dy**2)**0.6
-    g = g/g.max()*255
-    
-    core1 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-    g = cv2.erode(g, core1)
-    g = g.astype(dtype=np.uint8)
-    g = cv2.equalizeHist(g)
-    core2 = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
-    g = cv2.erode(g, core2)
-#    g = Resize_img(g,ratio = 0.5)    
-    
-    g = g[120:240,20:300]
+    h, s, v = pic[:,:,0],pic[:,:,1],pic[:,:,2]
+    core2 = cv2.getStructuringElement(cv2.MORPH_RECT, (5,5))
+    h = cv2.medianBlur(h, 9)
+    _, h = cv2.threshold(h, 0, 255, cv2.THRESH_OTSU)
+    h = cv2.morphologyEx(h, cv2.MORPH_OPEN, core2)
+    h = 255-h
+  
+
+    s = cv2.equalizeHist(s)
+    s = cv2.medianBlur(s, 9)
+    _, s = cv2.threshold(s, 0, 255, cv2.THRESH_OTSU)
+    s = cv2.morphologyEx(s, cv2.MORPH_OPEN, core2)
+
+    ssss = h & s
       
-    return g
+    return ssss
 
 def Resize_img(pic, ratio=0.5):
-    
     h,w = pic.shape[0:2]
 
     pic = cv2.resize(pic, dsize=(int(w*ratio), int(h*ratio)))
@@ -73,13 +103,13 @@ def Resize_img(pic, ratio=0.5):
     return pic
 
 def Img_reshape(pic):
-    im = pic.reshape(1, 33600).astype(np.float32)
+    im = pic.reshape(1, 28800).astype(np.float32)
     return im
 
 def Direction_define(prediction):
-    direction = prediction[0]
+    direction = prediction
     if direction == 0:
-        return 0.25, 0.9
+        return 0.125, 0.8
     elif direction == 1:
         return 0.2, 0.3
     elif direction == 2:
@@ -87,7 +117,7 @@ def Direction_define(prediction):
     elif direction == 3:
         return 0.3, 0.2
     elif direction == 4:
-        return 0.9, 0.2
+        return 0.75, 0.2
 
 
 
