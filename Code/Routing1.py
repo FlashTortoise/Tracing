@@ -27,9 +27,9 @@ class Routing(t.Task):
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_add.xml')
 #	     self.recorder = recording.RecordingTask()
-	self.results = deque(maxlen = 20)
+	self.results = deque(maxlen = 80)
 	self.count_curve = 0
-	self.average_length = 20
+	self.average_length = 80
 		
     def step(self):
         img = eye.see()
@@ -53,7 +53,7 @@ def Task_alter(prediction,results,count_curve,average_length):
 	else:
 		results.append(prediction)
 		results_average = sum(results)/len(results)
-		if results_average > 3.8 or results_average < 0.2:
+		if results_average > 3.9:
 			count_curve += 1
 			results = []
 			print count_curve
