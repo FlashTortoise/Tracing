@@ -24,7 +24,7 @@ class Routing(t.Task):
     def __init__(self):
         super(Routing, self).__init__()
 
-        self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise/1_0511_add_32.xml')
+        self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/cloudy.xml')
 #	     self.recorder = recording.RecordingTask()
 		self.result = []
 		self.count_curve = 0
@@ -44,31 +44,21 @@ class Routing(t.Task):
 
         
 def Task_alter(prediction,results,count_curve,average_length):
-	results_length = len(results)
-	
-	if results_length < average_length:
-		results.append(prdiction)
-	else:
-		results = Left_shift(prediction,results)
-		results, count_curve = Judge_average(results,count_curve)
-		
-	return results, count_curve
-
-def Left_shift(prediction,results):
-	results = results.pop(0)
 	results.append(prediction)
-	return results
-
-def Judge_average(results,count_curve):
-	results_average = sum(results)/len(results)
-	if results_average > 3.9 or results_average < 0.1:
-		count_curve += 1
-		results = []
-		print count_curve
+	results_length = len(results)
+	if results_length < average_length:
+		results.append(prediction)
 		return results, count_curve
 	else:
-		return results, count_curve
-		
+		results.append(prediction)
+		results_average = sum(results)/len(results)
+		if results_average > 3.8 or results_average < 0.2:
+			count_curve += 1
+			results = []
+			print count_curve
+			return results, count_curve
+		else:
+			return results, count_curve
 
 def Converting(pic):
     
