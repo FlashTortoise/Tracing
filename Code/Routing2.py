@@ -7,12 +7,15 @@ Created on Sun Apr 16 19:21:27 2017
 """
 
 
+import time
+import sys
 
 import cv2
 import numpy as np
-from collections import deque
 
 import tortoise as t
+
+
 
 
 
@@ -26,8 +29,14 @@ class Routing(t.Task):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_task2.xml')
+		self.flag_tracing1_end = False
+		self.start_time = time.time()
 
+		
     def step(self):
+		now_time = time.time()
+		if now_time > self.start_time + 25:
+			self.flag_tracing1_end = True
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)
@@ -38,6 +47,7 @@ class Routing(t.Task):
         t.peripheral.wheels.set_lr(l,r)
 
 	#print prediction	
+
 
 
 def Converting(pic):

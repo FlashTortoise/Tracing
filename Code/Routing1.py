@@ -6,15 +6,17 @@ Created on Sun Apr 16 19:21:27 2017
 @author: cadmium
 """
 
-
+import time
+import sys
 
 import cv2
 import numpy as np
-from collections import deque
-
 
 import tortoise as t
 
+
+
+#t.update_config(TORTOISE_WALK_PERIOD = 1)
 eye = t.peripheral.eye
 
 
@@ -24,14 +26,13 @@ class Routing(t.Task):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_add.xml')
-	self.results = deque(maxlen = 80)
-	self.count_curve = 0
-	self.average_length = 80
-	
+		self.flag_tracing_end = False
+	self.start_time = time.time()
+		
     def step(self):
-	now_time = time.time()
-	if now_time > self.start_time + 200:
-		sys.exit()	
+		now_time = time.time()
+		if now_time > self.start_time + 200:
+			self.flag_tracing_end = True	
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)
@@ -40,27 +41,8 @@ class Routing(t.Task):
 	prediction = prediction[0]
         l, r = Direction_define(prediction)
         t.peripheral.wheels.set_lr(l,r)
-	self.results, self.count_curve = Task_alter(prediction,self.results,self.count_curve,self.average_length)
-
 	#print prediction	
 
-def Task_alter(prediction,results,count_curve,average_length):
-	results.append(prediction)
-	results_length = len(results)
-	if results_length < average_length:
-		results.append(prediction)
-		return results, count_curve
-	else:
-		results.append(prediction)
-		results_average = sum(results)/len(results)
-		print results_average
-		if results_average < 0.1:
-			count_curve += 1
-			results = []
-			print count_curve
-			return results, count_curve
-		else:
-			return results, count_curve
 
 
 def Converting(pic):

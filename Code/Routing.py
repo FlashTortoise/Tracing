@@ -13,7 +13,7 @@ import numpy as np
 from collections import deque
 
 import tortoise as t
-
+#import recording
 
 
 #t.update_config(TORTOISE_WALK_PERIOD = 1)
@@ -26,8 +26,11 @@ class Routing(t.Task):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/cloudy.xml')
-
-	
+#	     self.recorder = recording.RecordingTask()
+	self.results = deque(maxlen = 20)
+	self.result = []
+	self.count_curve = 0
+	self.average_length = 20
 		
     def step(self):
         img = eye.see()
@@ -37,8 +40,9 @@ class Routing(t.Task):
         prediction = resp.argmax(-1)
         l, r = Direction_define(prediction)
         t.peripheral.wheels.set_lr(l, r)
-		self.results, self.count_curve = Task_alter(prediction,self.results,self.count_curve,self.average_length)
-
+	self.results, self.count_curve = Task_alter(prediction,self.results,self.count_curve,self.average_length)
+#	    self.recorder.step()
+#       print prediction[0]	
 
         
 def Task_alter(prediction,results,count_curve,average_length):
@@ -74,7 +78,7 @@ def Converting(pic):
     g = cv2.equalizeHist(g)
     core2 = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
     g = cv2.erode(g, core2)
-  
+#    g = Resize_img(g,ratio = 0.5)    
     
     g = g[120:240,20:300]
       
