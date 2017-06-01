@@ -7,8 +7,8 @@ Created on Sun Apr 16 19:21:27 2017
 """
 
 
-import time
-import sys
+
+#import sys
 
 import cv2
 import numpy as np
@@ -24,19 +24,14 @@ eye = t.peripheral.eye
 
 
 
-class Routing(t.Task):
+class Routing2(t.Task):
     def __init__(self):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_task2.xml')
-		self.flag_tracing1_end = False
-		self.start_time = time.time()
 
 		
     def step(self):
-		now_time = time.time()
-		if now_time > self.start_time + 25:
-			self.flag_tracing1_end = True
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)
