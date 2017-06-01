@@ -10,6 +10,7 @@ Created on Sun Apr 16 19:21:27 2017
 
 import cv2
 import numpy as np
+from collections import deque
 
 import tortoise as t
 #import recording
@@ -26,9 +27,10 @@ class Routing(t.Task):
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/cloudy.xml')
 #	     self.recorder = recording.RecordingTask()
+		self.results = deque(maxlen = 20)
 		self.result = []
 		self.count_curve = 0
-		self.average_length = 30
+		self.average_length = 20
 		
     def step(self):
         img = eye.see()
