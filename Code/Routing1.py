@@ -12,11 +12,9 @@ import cv2
 import numpy as np
 from collections import deque
 
+
 import tortoise as t
-#import recording
 
-
-#t.update_config(TORTOISE_WALK_PERIOD = 1)
 eye = t.peripheral.eye
 
 
@@ -26,12 +24,14 @@ class Routing(t.Task):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_add.xml')
-#	     self.recorder = recording.RecordingTask()
 	self.results = deque(maxlen = 80)
 	self.count_curve = 0
 	self.average_length = 80
-		
+	
     def step(self):
+	now_time = time.time()
+	if now_time > self.start_time + 200:
+		sys.exit()	
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)
@@ -41,7 +41,7 @@ class Routing(t.Task):
         l, r = Direction_define(prediction)
         t.peripheral.wheels.set_lr(l,r)
 	self.results, self.count_curve = Task_alter(prediction,self.results,self.count_curve,self.average_length)
-#       self.recorder.step()
+
 	#print prediction	
 
 def Task_alter(prediction,results,count_curve,average_length):
@@ -53,7 +53,8 @@ def Task_alter(prediction,results,count_curve,average_length):
 	else:
 		results.append(prediction)
 		results_average = sum(results)/len(results)
-		if results_average > 3.9:
+		print results_average
+		if results_average < 0.1:
 			count_curve += 1
 			results = []
 			print count_curve
@@ -99,7 +100,7 @@ def Img_reshape(pic):
 def Direction_define(prediction):
     direction = prediction
     if direction == 0:
-        return 0.125, 0.8
+        return 0.2, 0.75
     elif direction == 1:
         return 0.2, 0.3
     elif direction == 2:
@@ -107,7 +108,7 @@ def Direction_define(prediction):
     elif direction == 3:
         return 0.3, 0.2
     elif direction == 4:
-        return 0.75, 0.2
+        return 0.7, 0.2
 
 
 
