@@ -26,17 +26,17 @@ eye = t.peripheral.eye
 
 class Routing2_part1(t.Task):
     def __init__(self):
-        super(Routing, self).__init__()
+        super(Routing2_part1, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_task2.xml')
-		self.flag_tracing2part1_end = False
-		self.start_time = time.time()
+	self.flag_tracing2part1_end = False
+	self.start_time = time.time()
 
 		
     def step(self):
-		now_time = time.time()
-		if now_time > self.start_time + 25:
-			self.flag_tracing1_end = True
+	now_time = time.time()
+	if now_time > self.start_time + 25:
+		self.flag_tracing1_end = True
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)

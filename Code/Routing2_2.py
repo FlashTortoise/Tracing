@@ -23,7 +23,7 @@ eye = t.peripheral.eye
 
 class Routing2_part2(t.Task):
     def __init__(self):
-        super(Routing, self).__init__()
+        super(Routing2_part2, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/cloudy.xml')
 

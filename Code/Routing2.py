@@ -8,7 +8,7 @@ Created on Sun Apr 16 19:21:27 2017
 
 
 
-#import sys
+import time
 
 import cv2
 import numpy as np
@@ -26,12 +26,16 @@ eye = t.peripheral.eye
 
 class Routing2(t.Task):
     def __init__(self):
-        super(Routing, self).__init__()
+        super(Routing2, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('/home/pi/ftp/tortoise-mbed/Routing_test/new_task2.xml')
-
+		self.start_time = time.time()
 		
     def step(self):
+		now_time = time.time()
+		if now_time > self.start_time + 43:
+			t.peripheral.wheels.set_lr(0.34, 0.3)
+			return
         img = eye.see()
         img_convert = Converting(img)
         image_array = Img_reshape(img_convert)
